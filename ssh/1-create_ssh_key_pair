@@ -1,3 +1,9 @@
 #!/usr/bin/env bash
+<<<<<<< HEAD
 # This script creates an RSA SSH key pair with a specified name, bit length, and passphrase.
 ssh-keygen -t rsa -b 4096 -f school -P "betty"
+=======
+# This script creates an RSA key pair with 4096 bits and passphrase 'betty'
+ssh-keygen -t rsa -b 4096 -f school -N "betty"
+
+>>>>>>> c3a86f7 (initial commit)
