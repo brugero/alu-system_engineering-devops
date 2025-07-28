@@ -15,14 +15,14 @@ sudo cp /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
 # sudo truncate -s 0 /etc/haproxy/haproxy.cfg
 
 # Check if the configuration for frontend and backend exists
-if ! grep -q "frontend hasbiyallah-frontend" /etc/haproxy/haproxy.cfg; then
+if ! grep -q "frontend beulla-frontend" /etc/haproxy/haproxy.cfg; then
     # Add frontend and backend configuration
-    server_config="frontend hasbiyallah-frontend
+    server_config="frontend beulla-frontend
         bind *:80
         mode http
-        default_backend hasbiyallah-backend
+        default_backend beulla-backend
 
-    backend hasbiyallah-backend
+    backend beulla-backend
         balance roundrobin
         server 6310-web-01 3.86.194.153:80 check
         server 6310-web-02 3.91.200.254:80 check"
