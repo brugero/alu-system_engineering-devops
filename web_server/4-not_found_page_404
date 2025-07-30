@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# Installs Nginx with the following configurations:
 sudo apt-get update -y
 
 if ! command -v nginx &> /dev/null
