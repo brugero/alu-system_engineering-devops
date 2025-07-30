@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# server configuration script for Nginx
+
 sudo apt-get update -y
 
 if ! command -v nginx &> /dev/null
@@ -154,13 +154,22 @@ sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.ba
 
 echo "Modifying Nginx default configuration for redirect and custom 404 page..."
 
+# Add the redirect for /redirect_me
 sudo sed -i '/server_name _;/a \        rewrite ^\/redirect_me https:\/\/www.youtube.com\/watch?v=QH2-TGUlwu4 permanent;' /etc/nginx/sites-available/default
 
+# Remove any existing 404 error page configurations to prevent duplicates or incorrect nesting
 sudo sed -i '/error_page 404/d' /etc/nginx/sites-available/default
+# This sed command removes the entire location = /404.html block if it exists
+sudo sed -i '/location = \/404.html {/,/}/d' /etc/nginx/sites-available/default
 
-sudo sed -i '/location \/ {/a \        error_page 404 /404.html;' /etc/nginx/sites-available/default
-
-sudo sed -i '/error_page 404 \/404.html;/a \        location = /404.html { internal; }' /etc/nginx/sites-available/default
+# Insert the 404 configuration right before the closing brace of the server block
+# This ensures it's at the correct level and not nested.
+sudo sed -i '/^}$/i \
+        error_page 404 /404.html;\
+\
+        location = /404.html {\
+                internal;\
+        }' /etc/nginx/sites-available/default
 
 echo "Testing Nginx configuration..."
 sudo nginx -t
