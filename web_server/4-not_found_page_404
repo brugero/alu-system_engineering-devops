@@ -1,25 +1,190 @@
 #!/usr/bin/env bash
 # Installs Nginx with the following configurations:
-#+    Listens on port 80.
-#+    Returns a page containing "Holberton School" when queried
-#+     at the root with a curl GET request.
-# Configures /redirect_me as a "301 Moved Permanently".
-# Includes a custom 404 page containing "Ceci n'est pas une page".
+# +    Listens on port 80.
+# +    Returns a page containing "Holberton School" when queried
+# +    at the root with a curl GET request.     
+sudo apt-get update -y
 
-sudo apt-get update 
-sudo apt-get install -y nginx 
+if ! command -v nginx &> /dev/null
+then
+    echo "Nginx not found, installing Nginx..."
+    sudo apt-get install nginx -y
+else
+    echo "Nginx is already installed."
+fi
 
-echo "Holberton School" | sudo tee /var/www/html/index.html
+echo "Setting default index.html content to 'Holberton School'..."
+echo "Holberton School" | sudo tee /var/www/html/index.html > /dev/null
 
-string_for_replacement="server_name _;\n\trewrite ^\/redirect_me https:\/\/www.youtube.com\/watch?v=QH2-TGUlwu4 permanent;"
+CUSTOM_404_PAGE="/usr/share/nginx/html/404.html"
 
-sudo sed -i "s/server_name _;/$string_for_replacement/" /etc/nginx/sites-available/default
+echo "Creating custom 404.html page with design and 'Ceci n'est pas une page'..."
+sudo tee "$CUSTOM_404_PAGE" > /dev/null <<EOF
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease-out;
+        }
+        h1 {
+            font-size: 3em;
+            color: #58a6ff;
+            margin-bottom: 10px;
+            animation: pulse 1.5s infinite alternate;
+        }
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .astronaut {
+            font-size: 5em;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+        .button {
+            background-color: #238636;
+            color: #fff;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .button:hover {
+            background-color: #2ea043;
+            transform: translateY(-2px);
+        }
+        .button.secondary {
+            background-color: #30363d;
+            border: 1px solid #8b949e;
+        }
+        .button.secondary:hover {
+            background-color: #444c56;
+        }
+        .mandatory-string {
+            margin-top: 30px;
+            font-size: 0.9em;
+            color: #8b949e;
+        }
 
-echo "Ceci n'est pas une page" | sudo tee /var/www/html/404.html
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.02); }
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
 
-string_for_replacement="listen 80 default_server;\n\terror_page 404 \/404.html;\n\tlocation = \/404.html {\n\t\troot \/var\/www\/html;\n\tinternal;\n\t}"
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px;
+            }
+            h1 {
+                font-size: 2.5em;
+            }
+            p {
+                font-size: 1em;
+            }
+            .astronaut {
+                font-size: 4em;
+            }
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="astronaut">👨‍🚀</div>
+        <h1>LOST IN THE COSMOS?</h1>
+        <p>It seems the page you're looking for has drifted off into the great unknown.</p>
+        <div class="button-group">
+            <a href="/" class="button">Return to Homepage</a>
+            <a href="/sitemap" class="button secondary">Explore Our Galaxy</a>
+            <a href="/contact" class="button secondary">Report a Black Hole</a>
+        </div>
+        <p class="mandatory-string">Ceci n'est pas une page</p>
+    </div>
+</body>
+</html>
+EOF
 
-sudo sed -i "s/listen 80 default_server;/$string_for_replacement/" /etc/nginx/sites-available/default
+echo "Backing up original Nginx default configuration..."
+sudo cp /etc/nginx/sites-available/default /etc/nginx/sites-available/default.bak
 
-sudo service nginx restart
+echo "Modifying Nginx default configuration for redirect and custom 404 page..."
 
+# Add the redirect for /redirect_me
+sudo sed -i '/server_name _;/a \        rewrite ^\/redirect_me https:\/\/www.youtube.com\/watch?v=QH2-TGUlwu4 permanent;' /etc/nginx/sites-available/default
+
+# Remove any existing 404 error page configurations to prevent duplicates or incorrect nesting
+sudo sed -i '/error_page 404/d' /etc/nginx/sites-available/default
+# This sed command removes the entire location = /404.html block if it exists
+sudo sed -i '/location = \/404.html {/,/}/d' /etc/nginx/sites-available/default
+
+# Insert the 404 configuration right before the closing brace of the server block
+# This ensures it's at the correct level and not nested.
+sudo sed -i '/^}$/i \
+        error_page 404 /404.html;\
+\
+        location = /404.html {\
+                root /usr/share/nginx/html;\
+                internal;\
+        }' /etc/nginx/sites-available/default
+
+echo "Testing Nginx configuration..."
+sudo nginx -t
+
+if [ $? -eq 0 ]; then
+    echo "Nginx configuration test successful. Restarting Nginx..."
+    sudo systemctl restart nginx
+    echo "Nginx restarted successfully. All configurations applied."
+else
+    echo "Nginx configuration test failed. Please check the errors above."
+    exit 1
+fi
+
+echo "Configuration complete. Try accessing / to see 'Holberton School', /redirect_me for the redirect, and a non-existent page for the custom 404."
