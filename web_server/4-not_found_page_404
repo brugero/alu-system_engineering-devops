@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+# server configuration script for Nginx
 sudo apt-get update -y
 
 if ! command -v nginx &> /dev/null
