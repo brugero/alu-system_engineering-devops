@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
-#Installing Nginx and configuring it
-sudo apt update -y # update package manager to get latest updates when installing ngi..
-sudo apt install nginx -y # instal nginx
-new_config=\
-"server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
-		root /var/www/html;
-	index index.html index.html index.nginx-debian.html;
-	server_name _;
-	add_header X-Served-By $HOSTNAME;
-}
-"
-sudo chown -R "$USER":"$USER" /etc/nginx/sites-available/default # change ownership
-echo "$new_config" > /etc/nginx/sites-available/default # overwrite the existing configuration
+# Configures Nginx on a new Ubuntu server with a custom X-Served-By header
+
+# Update package lists
+sudo apt-get update -y
+
+# Install Nginx if not already installed
+sudo apt-get install nginx -y
+
+# Create custom header configuration
+header_file="/etc/nginx/conf.d/custom_header.conf"
+sudo bash -c "echo 'more_set_headers \"X-Served-By: \$hostname\";' > \"$header_file\""
+
+# Install headers-more-nginx-module
+sudo apt-get install nginx-extras -y
+
+# Check if include line already exists in nginx.conf
+if ! grep -q "custom_header.conf" /etc/nginx/nginx.conf; then
+    # Add include directive after http block opening
+    sudo sed -i '/http {/a \    include /etc/nginx/conf.d/custom_header.conf;' /etc/nginx/nginx.conf
+fi
+
 sudo service nginx restart # restart the nginx
 
